@@ -1,0 +1,7 @@
+---
+# defaults file for apache
+http_user: "arsalen"
+http_host: "web_app"
+http_conf: "web_app.conf"
+http_port: "80"
+disable_default: true

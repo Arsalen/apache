@@ -1,0 +1,48 @@
+---
+# tasks file for apache
+
+- name: Install apache2
+  apt:
+    name: apache2
+    state: latest
+    update_cache: yes
+
+- name: Setup user
+  user:
+    name: "{{http_user}}"
+    state: present
+
+- name: Create document root
+  file:
+    path: /var/www/{{http_host}}
+    state: directory
+    owner: "{{http_user}}"
+
+- name: Setup index page
+  template:
+    src: index.html.j2
+    dest: /var/www/{{http_host}}/index.html
+
+- name: Configure apache
+  template:
+    src: apache.conf.j2
+    dest: /etc/apache2/sites-available/{{http_conf}}
+
+- name: Enable site
+  shell: /usr/sbin/a2ensite {{http_conf}}
+  notify: Reload apache
+
+- name: Disable default
+  shell: /usr/sbin/a2dissite {{item}}
+  loop:
+    - 000-default.conf
+    - vhosts.conf
+    - default-ssl.conf
+  when: disable_default
+  notify: Reload apache
+
+- name: Configure firewall
+  ufw:
+    rule: allow
+    port: "{{http_port}}"
+    proto: tcp
